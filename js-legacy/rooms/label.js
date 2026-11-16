@@ -207,7 +207,7 @@
       ctx.beginPath();
       ctx.arc(cx, cy, 15, 0, 7);
       ctx.fill();
-      ctx.fillStyle = l > 0 ? "rgba(255,".concat(200 + 55 * l | 0, ",90,").concat(0.4 + 0.6 * l, ")") : "#5a4a2a";
+      ctx.fillStyle = l > 0 ? `rgba(255,${200 + 55 * l | 0},90,${0.4 + 0.6 * l})` : "#5a4a2a";
       ctx.beginPath();
       ctx.arc(cx, cy, 11, 0, 7);
       ctx.fill();
@@ -248,7 +248,8 @@
     ctx.drawImage(c, x - 12, y - 12, w + 24, h + 24);
   }
   function drawStampArm(t) {
-    const X = 1300, TOP = 110, PAD = 398, c = t % 4, p = c < 3.4 ? 0 : c < 3.6 ? (c - 3.4) / 0.2 : c < 3.75 ? 1 : 1 - (c - 3.75) / 0.25, e = p * p * (3 - 2 * p), ext = 30 + e * 178;
+    const X = 1300, PANEL_BOT = 24 + 114, GAP = 48, TOP = PANEL_BOT + GAP + 40, PY = 454, PW = 200, PH = 90, c = t % 4, p = c < 3.4 ? 0 : c < 3.6 ? (c - 3.4) / 0.2 : c < 3.75 ? 1 : 1 - (c - 3.75) / 0.25, e = p * p * (3 - 2 * p);
+    const y0 = TOP + 90, headH = 46, extMax = PY - (y0 + headH), ext = 30 + e * Math.max(0, extMax - 30);
     ctx.save();
     BB.rrect(X - 120, TOP - 40, 240, 50, 10, BB.lg(TOP - 40, TOP + 10, ["#6e7a86", "#2e363e"]), "#22282e", 4);
     ctx.fillStyle = "#f2c230";
@@ -258,7 +259,6 @@
     ctx.beginPath();
     ctx.arc(X, TOP + 45, 10, 0, 7);
     ctx.fill();
-    const y0 = TOP + 90;
     const pg = ctx.createLinearGradient(X - 16, 0, X + 16, 0);
     pg.addColorStop(0, "#7d8a92");
     pg.addColorStop(0.35, "#f2f6f8");
@@ -269,18 +269,13 @@
     const hy = y0 + ext;
     BB.rrect(X - 50, hy, 100, 46, 10, BB.lg(hy, hy + 46, ["#a8704a", "#5e3620"]), "#22282e", 4);
     BB.rrect(X - 70, hy + 46, 140, 26, 6, BB.lg(hy + 46, hy + 72, ["#e8685a", "#9c2e24"]), "#22282e", 4);
+    BB.rrect(X - PW / 2, PY, PW, PH, 8, BB.lg(PY, PY + PH, ["#d8a466", "#9a6430"]), "#4a2e12", 4);
+    ctx.fillStyle = "rgba(240,220,170,.8)";
+    ctx.fillRect(X - 14, PY, 28, PH);
     {
-      const py = PAD + 66;
-      BB.rrect(X - 100, py, 200, 90, 8, BB.lg(py, py + 90, ["#d8a466", "#9a6430"]), "#4a2e12", 4);
-      ctx.fillStyle = "rgba(240,220,170,.8)";
-      ctx.fillRect(X - 14, py, 28, 90);
-    }
-    if (e > 0.5 || c < 1.2) {
-      ctx.globalAlpha = c < 1.2 ? 1 - c / 1.2 * 0.6 : 1;
-      ctx.strokeStyle = "#d24a3c";
-      ctx.lineWidth = 5;
-      ctx.strokeRect(X - 60, PAD + 84, 120, 46);
-      BB.text("OK!", X, PAD + 108, 30, "#d24a3c");
+      const bw = 128, bh = 56, bx = X - bw / 2, by = PY + (PH - bh) / 2;
+      BB.rrect(bx, by, bw, bh, 10, "#e24a3c", "#6e1510", 5);
+      BB.text("OK!", X, PY + PH / 2, 34, "#fff", { font: "Rammetto One", stroke: 6, strokeCol: "#5a1010" });
     }
     ctx.restore();
   }
@@ -315,7 +310,7 @@
         ctx.fillRect(cx - 1, by + 6, 2, bh - 12);
       }
       const lit = o.lit && o.lit[b] > 0;
-      if (lit) BB.rrect(cx + 2, by, n * bw - 4, bh, 8, "rgba(255,224,102,".concat(0.25 + 0.4 * o.lit[b], ")"));
+      if (lit) BB.rrect(cx + 2, by, n * bw - 4, bh, 8, `rgba(255,224,102,${0.25 + 0.4 * o.lit[b]})`);
       R.tile(k, cx + 3, by, n * bw - 6, bh, { ns: R.cardNs(k, bw, bh, n), shadow: !o.mini && BB.tier > 0 });
       if (o.syl) BB.text(SYL[k], cx + n * bw / 2, by + bh + 16, 20, "#5a5040", { maxW: n * bw - 6 });
       b += n;
@@ -379,25 +374,40 @@
       R.paint(g, () => {
         const g2 = BB.ctx;
         {
+          const label = "LABEL ROOM", minLeft = 1190 + 280 + 16, maxRight = W - 16, inset = 14, txtPad = 16, oh = 120, cy = 300;
+          let size = 44;
+          g2.font = size + 'px "Rammetto One"';
+          let tw = g2.measureText(label).width, innerW = Math.ceil(tw + txtPad * 2), outerW = innerW + inset * 2;
+          const maxOuter = maxRight - minLeft;
+          while (outerW > maxOuter && size > 28) {
+            size--;
+            g2.font = size + 'px "Rammetto One"';
+            tw = g2.measureText(label).width;
+            innerW = Math.ceil(tw + txtPad * 2);
+            outerW = innerW + inset * 2;
+          }
+          outerW = Math.min(Math.max(outerW, 380), maxOuter);
+          innerW = outerW - inset * 2;
+          const cx = (minLeft + maxRight) / 2;
           g2.save();
-          g2.translate(W - 250, 300);
+          g2.translate(cx, cy);
           g2.fillStyle = "#1e2b29";
           g2.beginPath();
-          g2.roundRect(-190, -70, 380, 120, 22);
+          g2.roundRect(-outerW / 2, -oh / 2, outerW, oh, 22);
           g2.fill();
           g2.strokeStyle = "#ff8adf";
           g2.lineWidth = 6;
           g2.shadowColor = "#ff8adf";
           g2.shadowBlur = 24;
           g2.beginPath();
-          g2.roundRect(-176, -56, 352, 92, 16);
+          g2.roundRect(-innerW / 2, -oh / 2 + inset, innerW, oh - inset * 2, 16);
           g2.stroke();
           g2.shadowBlur = 0;
           g2.fillStyle = "#ffd6f4";
-          g2.font = '44px "Rammetto One"';
+          g2.font = size + 'px "Rammetto One"';
           g2.textAlign = "center";
           g2.textBaseline = "middle";
-          g2.fillText("LABEL ROOM", 0, -10);
+          g2.fillText(label, 0, 0);
           g2.restore();
           for (let x = 0; x < W; x += 60) {
             g2.fillStyle = x / 60 % 2 ? "#ffe066" : "#1e2b29";
@@ -667,7 +677,8 @@
       BB.closeMenu();
     }
     cardRect(i) {
-      const n = this.cards.length, cw = (this.L || 4) > 4 ? 470 : n > 3 ? 340 : 400, ch = 215, gap = 30, tot = n * cw + (n - 1) * gap, x0 = W / 2 - tot / 2;
+      const n = this.cards.length, cw = (this.L || 4) > 4 ? 470 : n > 3 ? 340 : 400, ch = 215, gap = 30, tot = n * cw + (n - 1) * gap, maxR = 1600;
+      const x0 = Math.min(W / 2 - tot / 2, maxR - tot);
       return { x: x0 + i * (cw + gap), y: 690, w: cw, h: ch };
     }
     update(dt) {
@@ -844,7 +855,7 @@
         ctx.beginPath();
         ctx.arc(lx, ly, 13, 0, 7);
         ctx.fill();
-        ctx.fillStyle = on && fl > 0 ? "rgba(255,".concat(210 + 40 * fl | 0, ",90,").concat(0.35 + 0.65 * fl, ")") : "#4a5250";
+        ctx.fillStyle = on && fl > 0 ? `rgba(255,${210 + 40 * fl | 0},90,${0.35 + 0.65 * fl})` : "#4a5250";
         ctx.beginPath();
         ctx.arc(lx, ly, 9, 0, 7);
         ctx.fill();
@@ -911,10 +922,13 @@
     }
     drawHUD(t) {
       if (this.state === "end") return;
+      const hx = 124, hy = 24, hw = 490, hh = 114;
       PANEL(124, 24, 490, 114, 28);
-      BB.text("BOXES SHIPPED", 156, 58, 26, COL.yellow, { align: "left", stroke: 4, maxW: 400 });
-      BB.text("".concat(this.shipped, " of ").concat(BOXES), 156, 90, 24, "#fff", { align: "left", font: "Rammetto One", stroke: 4, maxW: 400 });
-      for (let i = 0; i < BOXES; i++) BB.rrect(196 + i * 28, 82, 22, 32, 6, i < this.shipped ? BB.lg(82, 114, ["#a6f5ae", "#3fb45a"]) : "#2d4744", "#fff", 3);
+      const wellX = hx + 18, wellY = hy + 16, wellW = hw - 36, wellH = hh - 32, pad = 16, titleY = wellY + 20;
+      BB.text("BOXES SHIPPED", wellX + pad, titleY, 26, COL.yellow, { align: "left", stroke: 4, maxW: 280 });
+      BB.text(`${this.shipped} of ${BOXES}`, wellX + wellW - pad, titleY, 24, "#fff", { align: "right", font: "Rammetto One", stroke: 4, maxW: 140 });
+      const n = BOXES, sw = 22, sg = 8, tot = n * sw + (n - 1) * sg, sh = 26, sy = wellY + wellH - 12 - sh, sx = wellX + (wellW - tot) / 2;
+      for (let i = 0; i < n; i++) BB.rrect(sx + i * (sw + sg), sy, sw, sh, 6, i < this.shipped ? BB.lg(sy, sy + sh, ["#a6f5ae", "#3fb45a"]) : "#2d4744", "#fff", 3);
       PANEL(1190, 24, 280, 114, 28);
       BB.text("POINTS " + this.score, 1330, 58, 28, "#fff", { stroke: 4, maxW: 220 });
       BB.text("STREAK " + this.streak + (this.streak >= 3 ? " \u2605" : ""), 1330, 90, 24, COL.yellow, { stroke: 4, maxW: 220 });
@@ -922,7 +936,7 @@
         const k = (t - this.gain.t) / 1.4;
         ctx.save();
         ctx.globalAlpha = 1 - k;
-        BB.text("+" + this.gain.p, 1326, 170 - k * 40, 44, COL.green, { font: "Rammetto One", stroke: 6 });
+        BB.text("+" + this.gain.p, 1330, 110 - k * 46, 44, COL.green, { font: "Rammetto One", stroke: 6 });
         ctx.restore();
       }
       if (this.state === "end") return;
@@ -977,7 +991,7 @@
       const t = BB.t - this.st;
       if (t < 0.4) return;
       const k = ease.back(clamp((t - 0.4) / 0.6, 0, 1));
-      ctx.fillStyle = "rgba(8,18,17,".concat(0.6 * clamp(t, 0, 1), ")");
+      ctx.fillStyle = `rgba(8,18,17,${0.6 * clamp(t, 0, 1)})`;
       ctx.fillRect(0, 0, W, H);
       ctx.save();
       ctx.translate(W / 2, 370);

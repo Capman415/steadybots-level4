@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// v14.5.28 offline assess chrome previews (not a live GUI / mic recording).
+// v14.5.29 offline assess chrome previews (not a live GUI / mic recording).
 'use strict';
 const fs=require('fs'),path=require('path');
 const {createCanvas,loadImage,GlobalFonts}=require(process.env.CV||'/tmp/cv/node_modules/@napi-rs/canvas');
 const ROOT=path.join(__dirname,'..');
-const OUT=process.argv[2]||'/workspace/previews/v14.5.28/final';
+const OUT=process.argv[2]||'/workspace/previews/v14.5.29/final';
 fs.mkdirSync(OUT,{recursive:true});
 const W=1920,H=1080;
 const COL={ink:'#19191f',cream:'#e8e2cd',teal:'#142826',teal2:'#50aaa0',green:'#3fb45a',yellow:'#ffe066',red:'#e65046',white:'#fff'};

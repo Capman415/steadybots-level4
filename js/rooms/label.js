@@ -78,13 +78,16 @@ function drawCard(x,y,w,h,seq,o={}){if(o.lit&&o.lit.some(v=>v>0))return drawCard
   const k=seq.join('')+'|'+w+'|'+h+'|'+(o.badge||'')+'|'+(o.hl?1:0)+(o.mini?1:0)+(o.syl?1:0)+(o.x?1:0)+'|'+BB.tier;let c=CARDC.get(k);
   if(!c){if(CARDC.size>160)CARDC.clear();const P=12,sc=BB.q?1:.5;c=document.createElement('canvas');c.width=Math.ceil((w+P*2)*sc);c.height=Math.ceil((h+P*2)*sc);const g=c.getContext('2d');g.scale(sc,sc);g.translate(P-x,P-y);BB.withCtx(g,()=>drawCardRaw(x,y,w,h,seq,o));CARDC.set(k,c)}
   ctx.drawImage(c,x-12,y-12,w+24,h+24)}
-/* v14.0.3: robotic rubber-stamp arm (code-drawn), gentle idle stamp every 4s */
-function drawStampArm(t){const X=1300,TOP=110,PAD=398,c=t%4,p=c<3.4?0:c<3.6?(c-3.4)/.2:c<3.75?1:1-(c-3.75)/.25,e=p*p*(3-2*p),ext=30+e*178;ctx.save();
+/* v14.5.29: stamp arm starts clearly below the POINTS/STREAK panel; OK! is a solid, centered mark on the parcel */
+function drawStampArm(t){const X=1300,PANEL_BOT=24+114,GAP=48,TOP=PANEL_BOT+GAP+40,PY=454,PW=200,PH=90,c=t%4,p=c<3.4?0:c<3.6?(c-3.4)/.2:c<3.75?1:1-(c-3.75)/.25,e=p*p*(3-2*p);
+  const y0=TOP+90,headH=46,extMax=PY-(y0+headH),ext=30+e*Math.max(0,extMax-30);ctx.save();
   BB.rrect(X-120,TOP-40,240,50,10,BB.lg(TOP-40,TOP+10,['#6e7a86','#2e363e']),'#22282e',4);ctx.fillStyle='#f2c230';for(let i=0;i<6;i++)ctx.fillRect(X-110+i*38,TOP-30,18,30);
   BB.rrect(X-34,TOP,68,90,12,BB.lg(TOP,TOP+90,['#a4b2bc','#4e5a64']),'#22282e',4);ctx.fillStyle='#ff5a4a';ctx.beginPath();ctx.arc(X,TOP+45,10,0,7);ctx.fill();
-  const y0=TOP+90;const pg=ctx.createLinearGradient(X-16,0,X+16,0);pg.addColorStop(0,'#7d8a92');pg.addColorStop(.35,'#f2f6f8');pg.addColorStop(1,'#5d6a72');BB.rrect(X-16,y0,32,ext,6,pg,'#22282e',3);ctx.fillStyle='rgba(0,0,0,.18)';for(let y=y0+14;y<y0+ext-8;y+=22)ctx.fillRect(X-16,y,32,4);
+  const pg=ctx.createLinearGradient(X-16,0,X+16,0);pg.addColorStop(0,'#7d8a92');pg.addColorStop(.35,'#f2f6f8');pg.addColorStop(1,'#5d6a72');BB.rrect(X-16,y0,32,ext,6,pg,'#22282e',3);ctx.fillStyle='rgba(0,0,0,.18)';for(let y=y0+14;y<y0+ext-8;y+=22)ctx.fillRect(X-16,y,32,4);
   const hy=y0+ext;BB.rrect(X-50,hy,100,46,10,BB.lg(hy,hy+46,['#a8704a','#5e3620']),'#22282e',4);BB.rrect(X-70,hy+46,140,26,6,BB.lg(hy+46,hy+72,['#e8685a','#9c2e24']),'#22282e',4);
-  {const py=PAD+66;BB.rrect(X-100,py,200,90,8,BB.lg(py,py+90,['#d8a466','#9a6430']),'#4a2e12',4);ctx.fillStyle='rgba(240,220,170,.8)';ctx.fillRect(X-14,py,28,90)}/* v14.1.1 stamps a parcel, not a blank label */if(e>.5||c<1.2){ctx.globalAlpha=c<1.2?1-c/1.2*.6:1;ctx.strokeStyle='#d24a3c';ctx.lineWidth=5;ctx.strokeRect(X-60,PAD+84,120,46);BB.text('OK!',X,PAD+108,30,'#d24a3c')}
+  /* v14.1.1 stamps a parcel, not a blank label */
+  BB.rrect(X-PW/2,PY,PW,PH,8,BB.lg(PY,PY+PH,['#d8a466','#9a6430']),'#4a2e12',4);ctx.fillStyle='rgba(240,220,170,.8)';ctx.fillRect(X-14,PY,28,PH);
+  {const bw=128,bh=56,bx=X-bw/2,by=PY+(PH-bh)/2;BB.rrect(bx,by,bw,bh,10,'#e24a3c','#6e1510',5);BB.text('OK!',X,PY+PH/2,34,'#fff',{font:'Rammetto One',stroke:6,strokeCol:'#5a1010'})}
   ctx.restore()}
 function drawCardRaw(x,y,w,h,seq,o={}){ctx.save();
   if(!o.mini)BB.rrect(x+5,y+8,w,h,12,'rgba(0,0,0,.35)');
@@ -107,9 +110,14 @@ class LabelRoom{constructor(o={}){this.o=o}
   bake(){const s=!BB.q?.5:1,c=document.createElement('canvas');c.width=W*s;c.height=H*s;const g=c.getContext('2d');g.scale(s,s);const V=BB.V2;
     if(V.mail_bg||V.pack_blur)g.drawImage(V.mail_bg||V.pack_blur,0,0,W,H);g.fillStyle='rgba(8,18,17,.28)';g.fillRect(0,0,W,H);
     // v14.0 LABEL ROOM stage: plum riveted wall, label rail with hanging tags, printer hatch sign, checker floor strip
-    R.paint(g,()=>{const g=BB.ctx;{// v14.0.2 robot mailing room: painted assets/v2/mail_bg.jpg (cubbies, parcels, pneumatic tube, stamp arm)
-     g.save();g.translate(W-250,300);g.fillStyle='#1e2b29';g.beginPath();g.roundRect(-190,-70,380,120,22);g.fill();g.strokeStyle='#ff8adf';g.lineWidth=6;g.shadowColor='#ff8adf';g.shadowBlur=24;g.beginPath();g.roundRect(-176,-56,352,92,16);g.stroke();g.shadowBlur=0;
-       g.fillStyle='#ffd6f4';g.font='44px "Rammetto One"';g.textAlign='center';g.textBaseline='middle';g.fillText('LABEL ROOM',0,-10);g.restore();
+    R.paint(g,()=>{const g=BB.ctx;{// v14.5.29: 'LABEL ROOM' fits inside the pink sign with padding; sign sits between the POINTS HUD and the stage edge
+     const label='LABEL ROOM',minLeft=1190+280+16,maxRight=W-16,inset=14,txtPad=16,oh=120,cy=300;
+     let size=44;g.font=size+'px "Rammetto One"';let tw=g.measureText(label).width,innerW=Math.ceil(tw+txtPad*2),outerW=innerW+inset*2;
+     const maxOuter=maxRight-minLeft;while(outerW>maxOuter&&size>28){size--;g.font=size+'px "Rammetto One"';tw=g.measureText(label).width;innerW=Math.ceil(tw+txtPad*2);outerW=innerW+inset*2}
+     outerW=Math.min(Math.max(outerW,380),maxOuter);innerW=outerW-inset*2;const cx=(minLeft+maxRight)/2;
+     g.save();g.translate(cx,cy);g.fillStyle='#1e2b29';g.beginPath();g.roundRect(-outerW/2,-oh/2,outerW,oh,22);g.fill();g.strokeStyle='#ff8adf';g.lineWidth=6;g.shadowColor='#ff8adf';g.shadowBlur=24;
+     g.beginPath();g.roundRect(-innerW/2,-oh/2+inset,innerW,oh-inset*2,16);g.stroke();g.shadowBlur=0;
+     g.fillStyle='#ffd6f4';g.font=size+'px "Rammetto One"';g.textAlign='center';g.textBaseline='middle';g.fillText(label,0,0);g.restore();
      for(let x=0;x<W;x+=60){g.fillStyle=(x/60)%2?'#ffe066':'#1e2b29';g.fillRect(x,H-36,60,14)}}
     // conveyor frame (belt surface + rollers drawn live)
     R.shadow(g,780,BELT_Y+120,760,.55);const fr=g.createLinearGradient(0,BELT_Y+24,0,BELT_Y+80);fr.addColorStop(0,'#c9d2d3');fr.addColorStop(.5,'#8a9798');fr.addColorStop(1,'#56625f');g.fillStyle=fr;g.fillRect(40,BELT_Y+24,1440,56);
@@ -159,7 +167,7 @@ class LabelRoom{constructor(o={}){this.o=o}
   manualOverride(){if(BB.t-this.lastOverride<.5)return;this.lastOverride=BB.t;this.ovPop=BB.t;if(this.cb)this.cb.override();else if(this.state==='pick')this.tapBox()}
   pause(){BB.openMenu()}
   resume(){BB.closeMenu()}
-  cardRect(i){const n=this.cards.length,cw=(this.L||4)>4?470:n>3?340:400,ch=215,gap=30,tot=n*cw+(n-1)*gap,x0=W/2-tot/2;return{x:x0+i*(cw+gap),y:690,w:cw,h:ch}}
+  cardRect(i){const n=this.cards.length,cw=(this.L||4)>4?470:n>3?340:400,ch=215,gap=30,tot=n*cw+(n-1)*gap,maxR=1600;/* v14.5.29: last card stays clear of Sprocket's parcel stack (x=1720, widest 206) */const x0=Math.min(W/2-tot/2,maxR-tot);return{x:x0+i*(cw+gap),y:690,w:cw,h:ch}}
   update(dt){BB.dt=dt;if(BB.keys.includes(' '))this.manualOverride();
     for(const k of BB.keys){if(k>='1'&&k<='4'&&this.cards&&this.cards[+k-1])this.pick(this.cards[+k-1]);if(k==='b')this.tapBox()}
     if(this.state==='intro'){const t=BB.t-this.st;this.introJr(dt);for(const f of this.flurry){f.vy=Math.min(f.vy+500*dt,170);f.vx*=1-dt*1.2;f.y+=f.vy*dt;f.x+=f.vx*dt+Math.sin(BB.t*1.6+f.p)*70*dt;f.r+=f.vr*dt;if(f.y>BELT_Y-60){Object.assign(f,this.flake(-90))}if(f.x>1450)f.x=1450}if(BB.keys.includes('s'))this.skipIntro();if(t>2&&this.voEnd&&BB.t>this.voEnd+.4)this.skipIntro();if(t>14)this.skipIntro()}
@@ -213,10 +221,16 @@ class LabelRoom{constructor(o={}){this.o=o}
     const sh=c.shake&&t-c.shake<.4?Math.sin((t-c.shake)*50)*10:0;ctx.save();ctx.globalAlpha=a;
     drawCard(x+sh,y,w,h,c.s,{badge:fl&&fl.i===i?null:'ABCD'[i],x:c.x,syl:this.revealed&&c.s===this.ans,hl:this.revealed&&c.s===this.ans&&Math.sin(t*6)>0});ctx.restore();
     if(this.state==='pick'&&!c.out)BB.button(r.x,r.y,r.w,r.h,'',{style:'none',id:'card'+i,onClick:()=>this.pick(c)})})}
-  drawHUD(t){if(this.state==='end')return;PANEL(124,24,490,114,28);BB.text('BOXES SHIPPED',156,58,26,COL.yellow,{align:'left',stroke:4,maxW:400});BB.text(`${this.shipped} of ${BOXES}`,156,90,24,'#fff',{align:'left',font:'Rammetto One',stroke:4,maxW:400});
-    for(let i=0;i<BOXES;i++)BB.rrect(196+i*28,82,22,32,6,i<this.shipped?BB.lg(82,114,['#a6f5ae','#3fb45a']):'#2d4744','#fff',3);
+  drawHUD(t){if(this.state==='end')return;
+    /* v14.5.29: title + count share the top of the well; the 12 slots sit on their own row below, all inside the pad */
+    const hx=124,hy=24,hw=490,hh=114;PANEL(124,24,490,114,28);
+    const wellX=hx+18,wellY=hy+16,wellW=hw-36,wellH=hh-32,pad=16,titleY=wellY+20;
+    BB.text('BOXES SHIPPED',wellX+pad,titleY,26,COL.yellow,{align:'left',stroke:4,maxW:280});
+    BB.text(`${this.shipped} of ${BOXES}`,wellX+wellW-pad,titleY,24,'#fff',{align:'right',font:'Rammetto One',stroke:4,maxW:140});
+    const n=BOXES,sw=22,sg=8,tot=n*sw+(n-1)*sg,sh=26,sy=wellY+wellH-12-sh,sx=wellX+(wellW-tot)/2;
+    for(let i=0;i<n;i++)BB.rrect(sx+i*(sw+sg),sy,sw,sh,6,i<this.shipped?BB.lg(sy,sy+sh,['#a6f5ae','#3fb45a']):'#2d4744','#fff',3);
     PANEL(1190,24,280,114,28);BB.text('POINTS '+this.score,1330,58,28,'#fff',{stroke:4,maxW:220});BB.text('STREAK '+this.streak+(this.streak>=3?' \u2605':''),1330,90,24,COL.yellow,{stroke:4,maxW:220});
-    if(this.gain&&t-this.gain.t<1.4){const k=(t-this.gain.t)/1.4;ctx.save();ctx.globalAlpha=1-k;BB.text('+'+this.gain.p,1326,170-k*40,44,COL.green,{font:'Rammetto One',stroke:6});ctx.restore()}
+    if(this.gain&&t-this.gain.t<1.4){const k=(t-this.gain.t)/1.4;ctx.save();ctx.globalAlpha=1-k;BB.text('+'+this.gain.p,1330,110-k*46,44,COL.green,{font:'Rammetto One',stroke:6});ctx.restore()}
     if(this.state==='end')return;if(this.state==='intro'){BB.button(W-370,H-150,330,110,'SKIP INTRO',{size:34,id:'skip',onClick:()=>this.skipIntro()});return}
     // v14.0.2: hint panel removed (teacher); tap the box to hear it again
     if(this.cb){BB.overrideBtn(()=>this.manualOverride(),{pop:this.ovPop&&t-this.ovPop<.3?1.08:1});this.cb.draw(W/2,H-95)}}

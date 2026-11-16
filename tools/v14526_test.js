@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// v14.5.27: hamburger drawer menu, no pause button, HUD insets, smash white-gap cleanup
+// v14.5.29: hamburger drawer menu, no pause button, HUD insets, smash white-gap cleanup
 'use strict';
 const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
@@ -12,10 +12,10 @@ let fails=0;const ok=(c,m)=>{if(!c){fails++;console.error('FAIL',m)}else console
 
 // --- version ---
 const ver=JSON.parse(read('version.json'));
-ok(ver.version==='v14.5.27'&&ver.build==='1794301527','version.json is v14.5.27 / 1794301527');
-ok(/BB\.VERSION='v14.5.27'/.test(eng),'BB.VERSION synced');
-ok((read('index.html').match(/1794301527/g)||[]).length>=2,'index.html build synced');
-ok(/bb-1794301527/.test(read('sw.js')),'sw cache synced');
+ok(ver.version==='v14.5.29'&&ver.build==='1794301529','version.json is v14.5.29 / 1794301529');
+ok(/BB\.VERSION='v14.5.29'/.test(eng),'BB.VERSION synced');
+ok((read('index.html').match(/1794301529/g)||[]).length>=2,'index.html build synced');
+ok(/bb-1794301529/.test(read('sw.js')),'sw cache synced');
 
 // --- no pause button remains ---
 ok(!/BB\.pauseBtn\s*=/.test(art),'pauseBtn helper removed from art.js');
@@ -243,5 +243,5 @@ ok(/state==='hear'/.test(as),'listening-first hear state is unchanged');
     ok(gapClear===gaps.length,'enclosed pipe-gap samples are transparent ('+gapClear+'/'+gaps.length+')');
   }catch(e){ok(false,'smash.png inspect failed: '+e.message)}
   if(fails){console.error('\n'+fails+' failure(s)');process.exit(1)}
-  console.log('v14.5.27 tests OK');
+  console.log('v14.5.29 tests OK');
 })();

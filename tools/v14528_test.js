@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// v14.5.28: Skip Q at bottom center; checkpoint bar and its lettering centered
+// v14.5.29: Skip Q at bottom center; checkpoint bar and its lettering centered
 'use strict';
 const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
@@ -8,10 +8,10 @@ const as=read('js/rooms/assess.js'),eng=read('js/engine.js'),art=read('js/art.js
 let fails=0;const ok=(c,m)=>{if(!c){fails++;console.error('FAIL',m)}else console.log('ok',m)};
 
 const ver=JSON.parse(read('version.json'));
-ok(ver.version==='v14.5.28'&&ver.build==='1794301528','version.json is v14.5.28 / 1794301528');
-ok(/BB\.VERSION='v14.5.28'/.test(eng),'BB.VERSION synced');
-ok((read('index.html').match(/1794301528/g)||[]).length>=2,'index.html build synced');
-ok(/bb-1794301528/.test(read('sw.js')),'sw cache synced');
+ok(ver.version==='v14.5.29'&&ver.build==='1794301529','version.json is v14.5.29 / 1794301529');
+ok(/BB\.VERSION='v14.5.29'/.test(eng),'BB.VERSION synced');
+ok((read('index.html').match(/1794301529/g)||[]).length>=2,'index.html build synced');
+ok(/bb-1794301529/.test(read('sw.js')),'sw cache synced');
 
 const banner=as.slice(as.indexOf('drawBanner()'), as.indexOf('drawProgress()'));
 ok(/const bw=1480,bh=110,bx=\(W-bw\)\/2,by=40/.test(banner),'checkpoint bar is 1480×110 and horizontally centered on the stage');
@@ -52,5 +52,5 @@ ok(/R\.rhythmCard\(x,y,bw,bh,c\.lab/.test(as)&&/R\.CHOICE/.test(read('js/rhythm.
 ok(/s:R\.choiceScale\(\)/.test(as),'reveal still uses the shared choiceScale');
 ok(/id:'asboss'/.test(as)&&/id:'asmap'/.test(as)&&!/id:'asdl'/.test(as.slice(as.indexOf("if(this.state==='end')"),as.indexOf("if(this.state==='graded')"))),'result-screen layout from v14.5.27 is unchanged');
 
-if(fails){console.error(fails+' v14.5.28 test(s) failed');process.exit(1)}
-console.log('v14.5.28 tests OK');
+if(fails){console.error(fails+' v14.5.29 test(s) failed');process.exit(1)}
+console.log('v14.5.29 tests OK');
